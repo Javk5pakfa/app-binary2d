@@ -46,14 +46,13 @@ def load_raw_data():
                         data.append(pickle.load(openfile))
                     except EOFError:
                         break
-        # print(data[0]['config']['physics']['binary_eccentricity'])
     else:
         print("No file loaded!")
 
     return data
 
 
-def get_ecc_dedm_data():
+def get_ecc_dedm_data(data):
     """
     This function uses input pickle checkpoint files to get the eccentricity
     associated with each as well as the mean eccentricity change per mass
@@ -67,7 +66,7 @@ def get_ecc_dedm_data():
     e_c = []
     dedm = []
 
-    for item in loaded_data:
+    for item in data:
         # Time component extrapolation.
         skip = 1
         eccentricity = item['config']['physics']['binary_eccentricity']
@@ -95,26 +94,61 @@ def get_ecc_dedm_data():
     return e_c, dedm
 
 
-def plot_ecc_dedm(ecc, dedm, mach_num):
-    """
-    This function uses eccentricity and mean eccentricity change to plot a graph
-    showing the binary's orbital evolution.
+def get_orbit_ydata(data):
+    orbit_list = []
+    ydata_list = []
 
-    :param ecc: A list of eccentricity to plot.
-    :param dedm: A list of de/dm to plot. Must have same number of elements
-    as ecc.
-    :param mach_num: How density the disk is.
-    :return: A plot with ecc on x-axis and de/dm on y-axis.
+    for item in data:
+        # Time component extrapolation.
+        skip = 1
+        i = np.where(item['time'] / 2.0 / np.pi < 200)[0][-1]
+        t = item['time'][i::skip]
+        orbit = t / 2.0 / np.pi
+        orbit_list.append(orbit[1:])
+
+        # Binary data extrapolation.
+        m1 = item['orbital_elements_change']['sink1'][:, 1][i::skip]
+        m2 = item['orbital_elements_change']['sink2'][:, 1][i::skip]
+        m = m1 + m2
+        mean_mdot = td(m) / td(t)
+        # mdot = smooth(np.diff(m) / np.diff(t)) / mean_mdot
+
+        e_sink_1 = item['orbital_elements_change']['sink1'][:, 3][i::skip]
+        e_sink_2 = item['orbital_elements_change']['sink2'][:, 3][i::skip]
+        e_grav_1 = item['orbital_elements_change']['grav1'][:, 3][i::skip]
+        e_grav_2 = item['orbital_elements_change']['grav2'][:, 3][i::skip]
+        e_sink = e_sink_1 + e_sink_2
+        e_grav = e_grav_1 + e_grav_2
+        e_tot = e_sink + e_grav
+
+        # edot_acc = smooth(np.diff(e_sink) / np.diff(t)) / mean_mdot
+        # edot_grac = smooth(np.diff(e_grav) / np.diff(t)) / mean_mdot
+        edot_acc = smooth(np.diff(e_tot) / np.diff(t)) / mean_mdot
+
+        ydata_list.append(edot_acc)
+
+    return orbit_list, ydata_list
+
+
+def plot_xy(x_data, y_data, x_label, y_label, super_title):
+    """
+    This function is a generic plotting function.
+
+    :param x_data: []
+    :param y_data: []
+    :param x_label: str
+    :param y_label: str
+    :param super_title: str
+    :return: Plot of data x vs y in linear scale.
     """
 
     fig = plt.figure()
     ax1 = fig.add_subplot(1, 1, 1)
 
-    ax1.scatter(ecc, dedm)
-    super_title_str = "Binary orbital evolution, MN = " + str(mach_num)
-    plt.suptitle(super_title_str)
-    plt.xlabel('e')
-    plt.ylabel(r'$\frac{\Delta e}{\Delta M}$')
+    ax1.scatter(x_data, y_data)
+    plt.suptitle(super_title)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
     plt.show()
 
 
