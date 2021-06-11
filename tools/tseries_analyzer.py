@@ -52,6 +52,38 @@ def load_raw_data():
     return data
 
 
+def get_a_dedm_data(data):
+    a_c = []
+    dedm = []
+
+    for item in data:
+        # Time component extrapolation.
+        skip = 1
+        eccentricity = item['config']['physics']['binary_eccentricity']
+        i = np.where(item['time'] / 2.0 / np.pi < 200)[0][-1]
+
+        # Binary data extrapolation.
+        m1 = item['orbital_elements_change']['sink1'][:, 1][i::skip]
+        m2 = item['orbital_elements_change']['sink2'][:, 1][i::skip]
+        m = m1 + m2
+
+        a_sink_1 = item['orbital_elements_change']['sink1'][:, 0][i::skip]
+        a_sink_2 = item['orbital_elements_change']['sink2'][:, 0][i::skip]
+        a_grav_1 = item['orbital_elements_change']['grav1'][:, 0][i::skip]
+        a_grav_2 = item['orbital_elements_change']['grav2'][:, 0][i::skip]
+        a_sink = a_sink_1 + a_sink_2
+        a_grav = a_grav_1 + a_grav_2
+        a_tot = a_sink + a_grav
+
+        mean_adot = td(a_tot)
+        mean_mdot = td(m)
+
+        a_c.append(eccentricity)
+        dedm.append(mean_adot / mean_mdot)
+
+    return a_c, dedm
+
+
 def get_ecc_dedm_data(data):
     """
     This function uses input pickle checkpoint files to get the eccentricity
