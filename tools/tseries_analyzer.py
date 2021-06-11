@@ -185,6 +185,13 @@ def plot_xy(x_data, y_data, x_label, y_label, super_title):
 
 
 if __name__ == "__main__":
+    title = 'title'
+    # xlabel = 'e'
+    xlabel = 'orbit'
+    # ylabel = r'$\frac{\Delta e}{\Delta M}$'
+    ylabel = r'$\Delta e$'
     loaded_data = load_raw_data()
-    eccentricities, dedms = get_ecc_dedm_data()
-    plot_ecc_dedm(eccentricities, dedms, 10)
+    orbits, ydata = get_orbit_ydata(loaded_data)
+    # eccentricities, dedms = get_ecc_dedm_data(loaded_data)
+    plot_xy(orbits, ydata, xlabel, ylabel, title)
+    # plot_xy(eccentricities, dedms, xlabel, ylabel, title)
