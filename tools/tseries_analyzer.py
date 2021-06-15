@@ -126,7 +126,7 @@ def get_ecc_dedm_data(data):
     return e_c, dedm
 
 
-def get_orbit_ydata(data):
+def get_orbit_ydata(data, index):
     orbit_list = []
     ydata_list = []
 
@@ -145,19 +145,19 @@ def get_orbit_ydata(data):
         mean_mdot = td(m) / td(t)
         # mdot = smooth(np.diff(m) / np.diff(t)) / mean_mdot
 
-        e_sink_1 = item['orbital_elements_change']['sink1'][:, 3][i::skip]
-        e_sink_2 = item['orbital_elements_change']['sink2'][:, 3][i::skip]
-        e_grav_1 = item['orbital_elements_change']['grav1'][:, 3][i::skip]
-        e_grav_2 = item['orbital_elements_change']['grav2'][:, 3][i::skip]
-        e_sink = e_sink_1 + e_sink_2
-        e_grav = e_grav_1 + e_grav_2
-        e_tot = e_sink + e_grav
+        sink_1 = item['orbital_elements_change']['sink1'][:, index][i::skip]
+        sink_2 = item['orbital_elements_change']['sink2'][:, index][i::skip]
+        grav_1 = item['orbital_elements_change']['grav1'][:, index][i::skip]
+        grav_2 = item['orbital_elements_change']['grav2'][:, index][i::skip]
+        sink = sink_1 + sink_2
+        grav = grav_1 + grav_2
+        tot = sink + grav
 
         # edot_acc = smooth(np.diff(e_sink) / np.diff(t)) / mean_mdot
         # edot_grac = smooth(np.diff(e_grav) / np.diff(t)) / mean_mdot
-        edot_acc = smooth(np.diff(e_tot) / np.diff(t)) / mean_mdot
+        dot_acc = smooth(np.diff(tot) / np.diff(t)) / mean_mdot
 
-        ydata_list.append(edot_acc)
+        ydata_list.append(dot_acc)
 
     return orbit_list, ydata_list
 
