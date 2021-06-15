@@ -143,7 +143,6 @@ def get_orbit_ydata(data, index):
         m2 = item['orbital_elements_change']['sink2'][:, 1][i::skip]
         m = m1 + m2
         mean_mdot = td(m) / td(t)
-        # mdot = smooth(np.diff(m) / np.diff(t)) / mean_mdot
 
         sink_1 = item['orbital_elements_change']['sink1'][:, index][i::skip]
         sink_2 = item['orbital_elements_change']['sink2'][:, index][i::skip]
@@ -153,8 +152,6 @@ def get_orbit_ydata(data, index):
         grav = grav_1 + grav_2
         tot = sink + grav
 
-        # edot_acc = smooth(np.diff(e_sink) / np.diff(t)) / mean_mdot
-        # edot_grac = smooth(np.diff(e_grav) / np.diff(t)) / mean_mdot
         dot_acc = smooth(np.diff(tot) / np.diff(t)) / mean_mdot
 
         ydata_list.append(dot_acc)
@@ -191,7 +188,7 @@ if __name__ == "__main__":
     # ylabel = r'$\frac{\Delta e}{\Delta M}$'
     ylabel = r'$\Delta e$'
     loaded_data = load_raw_data()
-    orbits, ydata = get_orbit_ydata(loaded_data)
+    orbits, ydata = get_orbit_ydata(loaded_data, 3)
     # eccentricities, dedms = get_ecc_dedm_data(loaded_data)
     plot_xy(orbits, ydata, xlabel, ylabel, title)
     # plot_xy(eccentricities, dedms, xlabel, ylabel, title)
